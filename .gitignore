@@ -1,1 +1,2 @@
 # Git ignore for chrome extension
+.DS_Store
