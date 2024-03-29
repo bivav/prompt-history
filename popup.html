@@ -1,17 +1,92 @@
 <!doctype html>
 <html>
     <head>
-        <title>Prompt History Popup</title>
+        <meta charset="UTF-8" />
+        <title>Prompt History</title>
         <style>
             body {
-                width: 200px;
-                padding: 10px;
+                width: 400px;
                 font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 10px;
+            }
+
+            #chatId {
+                text-align: center;
+                margin: 10px 0;
+                color: #666;
+                font-size: 14px;
+            }
+
+            #promptContainer {
+                overflow-y: auto;
+                max-height: 300px;
+                border-top: 1px solid #ddd;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 5px;
+                vertical-align: top;
+            }
+
+            th {
+                background-color: #f2f2f2;
+            }
+
+            .prompt {
+                display: -webkit-box;
+                -webkit-line-clamp: 5;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .deleteBtn {
+                color: white;
+                background-color: darkred;
+                border: none;
+                padding: 5px 10px;
+                cursor: pointer;
+            }
+
+            .clickable {
+                cursor: pointer;
+                position: relative;
+            }
+
+            .clickable::after {
+                content: "More";
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                background-color: white;
+                color: #007bff;
+                padding: 0 5px;
             }
         </style>
     </head>
     <body>
-        <h3>Prompt History</h3>
-        <p>Manage your prompt history settings here.</p>
+        <div id="chatId">Chat ID: <span id="chatIdValue">Loading...</span></div>
+        <div id="promptContainer">
+            <table id="promptsTable">
+                <thead>
+                    <tr>
+                        <th>Prompt</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Prompts will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+        <script src="popup.js"></script>
     </body>
 </html>

@@ -8,10 +8,19 @@ if (allowedDomains.includes(window.location.hostname)) {
   let currentPrompt = "";
   let currentChatId = "";
   let isEditing = false;
+  let tempFirstPrompt = ""; // Temporary storage for the first prompt
+
+  // Updated function to validate chat ID format
+  function isValidChatId(chatId) {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(chatId);
+  }
 
   function getChatId() {
     const pathSegments = window.location.pathname.split("/");
-    return pathSegments.pop();
+    const potentialChatId = pathSegments.pop();
+    return isValidChatId(potentialChatId) ? potentialChatId : null;
   }
 
   function resetHistoryVariables() {
@@ -29,6 +38,12 @@ if (allowedDomains.includes(window.location.hostname)) {
       if (history) {
         promptHistory = JSON.parse(history);
       }
+      // Check if there's a temporarily stored first prompt and add it to history
+      if (tempFirstPrompt) {
+        promptHistory.push(tempFirstPrompt);
+        saveHistory(); // Save the updated history with the first prompt
+        tempFirstPrompt = ""; // Clear the temporary storage
+      }
     }
   }
 
@@ -39,30 +54,36 @@ if (allowedDomains.includes(window.location.hostname)) {
         `promptHistory_${chatId}`,
         JSON.stringify(promptHistory),
       );
+    } else if (!chatId && currentPrompt) {
+      // No chat ID yet, store the first prompt temporarily
+      tempFirstPrompt = currentPrompt;
     }
   }
 
   loadHistory();
 
-  setInterval(checkForChatChange, 500);
-
+  // Function to periodically check for chat ID changes
   function checkForChatChange() {
     const chatId = getChatId();
-    if (chatId !== currentChatId) {
+    if (chatId && chatId !== currentChatId) {
       loadHistory();
     }
   }
+
+  // Set an interval to check for the chat ID every 500 milliseconds
+  setInterval(checkForChatChange, 500);
 
   function getInputArea() {
     return document.getElementById("prompt-textarea");
   }
 
-  // Adjust textarea height to fit content
+  // Function to adjust textarea height to fit content
   function adjustTextareaHeight(textarea) {
     textarea.style.height = "auto"; // Reset height to recalculate
     textarea.style.height = `${textarea.scrollHeight}px`; // Set to scroll height to remove scroll
   }
 
+  // Event listener for input events in the textarea
   document.addEventListener("input", (e) => {
     const inputArea = getInputArea();
     if (inputArea && e.target === inputArea) {
@@ -72,6 +93,7 @@ if (allowedDomains.includes(window.location.hostname)) {
     }
   });
 
+  // Event listener for keydown events in the textarea
   document.addEventListener("keydown", (e) => {
     const inputArea = getInputArea();
     if (!inputArea) return;
@@ -121,6 +143,19 @@ if (allowedDomains.includes(window.location.hostname)) {
       isEditing = true;
     }
   });
+
+  chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+      if (request.action === "getPrompts") {
+        const chatId = getChatId(); // Reuse your existing getChatId function
+        if (chatId) {
+          const history = localStorage.getItem(`promptHistory_${chatId}`);
+          const prompts = history ? JSON.parse(history) : [];
+          sendResponse({ prompts: prompts });
+        }
+      }
+    },
+  );
 } else {
   console.log("This extension is not allowed on the current domain.");
 }

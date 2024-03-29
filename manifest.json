@@ -2,14 +2,23 @@
   "manifest_version": 3,
   "name": "Prompt History",
   "version": "1.0",
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "storage", "tabs"],
+  "host_permissions": ["*://*.openai.com/*"],
+
   "background": {
     "service_worker": "background.js"
   },
+
   "content_scripts": [
     {
-      "matches": ["https://chat.openai.com/*"],
+      "matches": ["*://*.openai.com/*"],
       "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.js", "popup.html"],
+      "matches": ["<all_urls>"]
     }
   ],
   "action": {
