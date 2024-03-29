@@ -8,7 +8,7 @@ if (allowedDomains.includes(window.location.hostname)) {
   let currentPrompt = "";
   let currentChatId = "";
   let isEditing = false;
-  let tempFirstPrompt = ""; // Temporary storage for the first prompt
+  let tempFirstPrompt = "";
 
   // Updated function to validate chat ID format
   function isValidChatId(chatId) {
@@ -41,8 +41,9 @@ if (allowedDomains.includes(window.location.hostname)) {
       // Check if there's a temporarily stored first prompt and add it to history
       if (tempFirstPrompt) {
         promptHistory.push(tempFirstPrompt);
-        saveHistory(); // Save the updated history with the first prompt
-        tempFirstPrompt = ""; // Clear the temporary storage
+        // Save the updated history with the first prompt
+        saveHistory();
+        tempFirstPrompt = "";
       }
     }
   }
@@ -79,8 +80,8 @@ if (allowedDomains.includes(window.location.hostname)) {
 
   // Function to adjust textarea height to fit content
   function adjustTextareaHeight(textarea) {
-    textarea.style.height = "auto"; // Reset height to recalculate
-    textarea.style.height = `${textarea.scrollHeight}px`; // Set to scroll height to remove scroll
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
   }
 
   // Event listener for input events in the textarea
@@ -88,8 +89,14 @@ if (allowedDomains.includes(window.location.hostname)) {
     const inputArea = getInputArea();
     if (inputArea && e.target === inputArea) {
       currentPrompt = inputArea.value.trim();
-      isEditing = true; // User is actively editing
-      adjustTextareaHeight(inputArea); // Adjust height on input
+      adjustTextareaHeight(inputArea);
+
+      // Check if the textarea is empty after the input event
+      if (currentPrompt === "") {
+        isEditing = false;
+      } else {
+        isEditing = true;
+      }
     }
   });
 
@@ -104,14 +111,16 @@ if (allowedDomains.includes(window.location.hostname)) {
           !promptHistory.length ||
           promptHistory[promptHistory.length - 1] !== currentPrompt
         ) {
-          promptHistory.push(currentPrompt); // Save only if not a duplicate
-          saveHistory(); // Save updated history to localStorage
+          // Save only if not a duplicate
+          promptHistory.push(currentPrompt);
+          // Save updated history to localStorage
+          saveHistory();
         }
         historyIndex = -1;
         currentPrompt = "";
         inputArea.value = "";
-        isEditing = false; // Reset editing flag as the user has submitted the prompt
-        adjustTextareaHeight(inputArea); // Reset height on submit
+        isEditing = false;
+        adjustTextareaHeight(inputArea);
       }
       e.preventDefault();
     } else if (!isEditing && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
@@ -134,24 +143,25 @@ if (allowedDomains.includes(window.location.hostname)) {
         inputArea.value =
           promptHistory[promptHistory.length - 1 - historyIndex];
         currentPrompt = promptHistory[promptHistory.length - 1 - historyIndex];
-        adjustTextareaHeight(inputArea); // Adjust height based on history content
+        adjustTextareaHeight(inputArea);
       }
 
       e.preventDefault();
-    } else if (e.key !== "ArrowUp" && e.key !== "ArrowDown") {
-      // If any other key is pressed, consider the user to be editing
-      isEditing = true;
     }
+    // else if (e.key !== "ArrowUp" && e.key !== "ArrowDown") {
+    //   // If any other key is pressed, consider the user to be editing
+    //   isEditing = true;
+    // }
   });
 
   chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
       if (request.action === "getPrompts") {
-        const chatId = getChatId(); // Reuse your existing getChatId function
+        const chatId = getChatId();
         if (chatId) {
           const history = localStorage.getItem(`promptHistory_${chatId}`);
           const prompts = history ? JSON.parse(history) : [];
-          sendResponse({ prompts: prompts });
+          sendResponse({ prompts: prompts, chatId: chatId });
         }
       }
     },

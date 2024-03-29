@@ -9,6 +9,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         chrome.runtime.sendMessage({
           action: "displayPrompts",
           prompts: response ? response.prompts : [],
+          chatId: response ? response.chatId : "",
         });
       },
     );
